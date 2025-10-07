@@ -115,7 +115,7 @@ class Score:
     スコアを表示するクラス
     """
     def __init__(self):
-        self.font = pg.font.SysFont("hgp創英角ポップ体", 30)
+        self.font = pg.font.Font("NotoSansJP-Regular.ttf", 30) 
         self.color = (0, 0, 255)
         self.score = 0
         self.img = self.font.render(f"スコア: {self.score}", 0, self.color)
