@@ -172,6 +172,15 @@ def main():
         pg.display.update()
         tmr += 1
         clock.tick(50)
+        
+        if beam is not None:
+                if beam.rct.colliderect(bomb.rct):
+                    # 衝突したらビームと爆弾を消滅させる
+                    beam = None
+                    bomb = None
+                    # 以下を追加
+                    bird.change_img(6, screen) # 喜ぶ画像（6番）に切り替え
+                    pg.display.update()
 
 
 if __name__ == "__main__":
