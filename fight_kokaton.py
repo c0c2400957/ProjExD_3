@@ -161,8 +161,13 @@ def main():
         if bird.rct.colliderect(bomb.rct):
             # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
             bird.change_img(8, screen)
+            # 以下を追加
+            fonto = pg.font.Font(None, 80)
+            txt = fonto.render("Game Over", True, (255, 0, 0))
+            screen.blit(txt, [WIDTH/2-150, HEIGHT/2])
+
             pg.display.update()
-            time.sleep(1)
+            time.sleep(3) # 表示時間を3秒に延長
             return
 
         key_lst = pg.key.get_pressed()
@@ -181,7 +186,6 @@ def main():
                     # 以下を追加
                     bird.change_img(6, screen) # 喜ぶ画像（6番）に切り替え
                     pg.display.update()
-
 
 if __name__ == "__main__":
     pg.init()
