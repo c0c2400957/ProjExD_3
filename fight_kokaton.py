@@ -134,7 +134,7 @@ def main():
     bg_img = pg.image.load("fig/pg_bg.jpg")
     bird = Bird((300, 200))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
-    beam = None
+    beams = []
     score = Score() # Scoreインスタンスを生成
     clock = pg.time.Clock()
     tmr = 0
@@ -143,7 +143,7 @@ def main():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beam = Beam(bird)
+                beams.append(Beam(bird))
         
         screen.blit(bg_img, [0, 0])
         
@@ -160,26 +160,30 @@ def main():
                     return
                 
                 # ビームと爆弾の衝突判定
+            for j, beam in enumerate(beams):    
                 if beam is not None:
                     if beam.rct.colliderect(bomb.rct):
-                        beam = None
+                        beams[j] = None
                         bombs[i] = None
                         bird.change_img(6, screen) # 喜びエフェクト
                         score.score_up(1) #スコアを1点加算
 
         # Noneでない爆弾だけのリストに更新
         bombs = [bomb for bomb in bombs if bomb is not None]
+        beams = [beam for beam in beams if beam is not None] # Noneになったビームをリストから除去
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         
         for bomb in bombs:
             bomb.update(screen)
-        
-        if beam is not None:
+
+          # ビームの処理をループ化
+        for beam in beams:
             beam.update(screen)
-            if not check_bound(beam.rct)[0]:
-                beam = None
+        
+        # 画面外に出たビームをリストから除去
+        beams = [beam for beam in beams if check_bound(beam.rct)[0]]
 
         score.update(screen) #スコアを描画
         pg.display.update()
