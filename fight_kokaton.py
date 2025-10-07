@@ -77,7 +77,10 @@ class Beam:
     """
     def __init__(self, bird: Bird):
         # ★順番を修正
-        self.vx, self.vy = bird.dire
+        speed = 10  # ビームの基本速度を10に設定
+        # bird.direの各要素は5か0なので、5で割って正規化し、speedを掛ける
+        self.vx = bird.dire[0] * speed // 5
+        self.vy = bird.dire[1] * speed // 5
         angle = math.degrees(math.atan2(-self.vy, self.vx))
         self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), angle, 1.0)
         self.rct: pg.Rect = self.img.get_rect()
