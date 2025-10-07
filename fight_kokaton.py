@@ -127,6 +127,25 @@ class Score:
         self.img = self.font.render(f"スコア: {self.score}", 0, self.color)
         screen.blit(self.img, self.rct)
 
+class Explosion:
+    """
+    爆発エフェクトを表現するクラス
+    """
+    def __init__(self, bomb: Bomb):
+        img = pg.image.load("fig/explosion.gif")
+        self.imgs = [img, pg.transform.flip(img, True, True)]
+        self.rct = self.imgs[0].get_rect()
+        self.rct.center = bomb.rct.center
+        self.life = 10 # 爆発の表示時間
+        self.img_idx = 0
+
+    def update(self, screen: pg.Surface):
+        self.life -= 1
+        if self.life > 0:
+            # 交互に画像を切り替えてチカチカさせる
+            self.img_idx = self.life % 2 
+            screen.blit(self.imgs[self.img_idx], self.rct)
+
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -135,6 +154,7 @@ def main():
     bird = Bird((300, 200))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     beams = []
+    explosions = [] # 爆発リストを追加
     score = Score() # Scoreインスタンスを生成
     clock = pg.time.Clock()
     tmr = 0
@@ -163,6 +183,7 @@ def main():
             for j, beam in enumerate(beams):    
                 if beam is not None:
                     if beam.rct.colliderect(bomb.rct):
+                        explosions.append(Explosion(bomb)) # 爆発インスタンス生成
                         beams[j] = None
                         bombs[i] = None
                         bird.change_img(6, screen) # 喜びエフェクト
@@ -184,6 +205,12 @@ def main():
         
         # 画面外に出たビームをリストから除去
         beams = [beam for beam in beams if check_bound(beam.rct)[0]]
+
+        for explosion in explosions:
+            explosion.update(screen)
+
+        # lifeが尽きた爆発をリストから除去
+        explosions = [exp for exp in explosions if exp.life > 0]
 
         score.update(screen) #スコアを描画
         pg.display.update()
