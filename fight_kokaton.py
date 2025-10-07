@@ -3,6 +3,7 @@ import random
 import sys
 import time
 import pygame as pg
+import math
 
 
 WIDTH = 1100  # ゲームウィンドウの幅
@@ -26,32 +27,30 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
 
 
 class Bird:
-    """
-    ゲームキャラクター（こうかとん）に関するクラス
-    """
-    delta = {  # 押下キーと移動量の辞書
+    delta = {
         pg.K_UP: (0, -5),
         pg.K_DOWN: (0, +5),
         pg.K_LEFT: (-5, 0),
         pg.K_RIGHT: (+5, 0),
     }
     img0 = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
-    img = pg.transform.flip(img0, True, False)  # デフォルトのこうかとん（右向き）
-    imgs = {  # 0度から反時計回りに定義
-        (+5, 0): img,  # 右
-        (+5, -5): pg.transform.rotozoom(img, 45, 0.9),  # 右上
-        (0, -5): pg.transform.rotozoom(img, 90, 0.9),  # 上
-        (-5, -5): pg.transform.rotozoom(img0, -45, 0.9),  # 左上
-        (-5, 0): img0,  # 左
-        (-5, +5): pg.transform.rotozoom(img0, 45, 0.9),  # 左下
-        (0, +5): pg.transform.rotozoom(img, -90, 0.9),  # 下
-        (+5, +5): pg.transform.rotozoom(img, -45, 0.9),  # 右下
+    img = pg.transform.flip(img0, True, False)
+    imgs = {
+        (+5, 0): img,
+        (+5, -5): pg.transform.rotozoom(img, 45, 0.9),
+        (0, -5): pg.transform.rotozoom(img, 90, 0.9),
+        (-5, -5): pg.transform.rotozoom(img0, -45, 0.9),
+        (-5, 0): img0,
+        (-5, +5): pg.transform.rotozoom(img0, 45, 0.9),
+        (0, +5): pg.transform.rotozoom(img, -90, 0.9),
+        (+5, +5): pg.transform.rotozoom(img, -45, 0.9),
     }
 
     def __init__(self, xy: tuple[int, int]):
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
+        self.dire = (+5, 0) # ★向きを保持する変数を追加
 
     def change_img(self, num: int, screen: pg.Surface):
         self.img = pg.transform.rotozoom(pg.image.load(f"fig/{num}.png"), 0, 0.9)
@@ -68,6 +67,7 @@ class Bird:
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.img = __class__.imgs[tuple(sum_mv)]
+            self.dire = tuple(sum_mv) # ★向きを更新
         screen.blit(self.img, self.rct)
 
 
@@ -76,11 +76,13 @@ class Beam:
     こうかとんが放つビームに関するクラス
     """
     def __init__(self, bird: Bird):
-        self.img = pg.image.load("fig/beam.png")
+        # ★順番を修正
+        self.vx, self.vy = bird.dire
+        angle = math.degrees(math.atan2(-self.vy, self.vx))
+        self.img = pg.transform.rotozoom(pg.image.load("fig/beam.png"), angle, 1.0)
         self.rct: pg.Rect = self.img.get_rect()
-        self.rct.left = bird.rct.right
-        self.rct.centery = bird.rct.centery
-        self.vx, self.vy = +5, 0
+        self.rct.centerx = bird.rct.centerx + bird.rct.width * self.vx / 5
+        self.rct.centery = bird.rct.centery + bird.rct.height * self.vy / 5
 
     def update(self, screen: pg.Surface):
         self.rct.move_ip(self.vx, self.vy)
@@ -145,7 +147,6 @@ class Explosion:
             # 交互に画像を切り替えてチカチカさせる
             self.img_idx = self.life % 2 
             screen.blit(self.imgs[self.img_idx], self.rct)
-
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
